@@ -15,7 +15,7 @@ urlpatterns =[
     path('shome',views.shome_fun,name='shome'),#student home
 
     path('ahome',views.adminhome_fun,name='ahome'),#admin home
-
+  
     path('addbook',views.addbook_fun,name='add'),
     path('adddata',views.addbookdata_fun),
 
@@ -31,6 +31,9 @@ urlpatterns =[
     path('assreaddata',views.assreadadata_fun,name='assread'),
 
     path('issued',views.issueddisplay_fun,name='iss'),
+
+    path('studentredata',views.studentprofile_fun,name='stpro'),
+    path('updateprof/<int:id>',views.updateprof_fun,name='updateprof'),
 
     path('sissue',views.stuissue_fun,name='sissue'),
 

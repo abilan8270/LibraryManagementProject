@@ -1,13 +1,16 @@
 # Create your views here.
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import render, redirect
+from django.views.decorators.cache import never_cache, cache_control
 
 from libraryapp.models import Course, Student, Books, Issue_book
 
 
 # Create your views here.
+
 def login_fun(request):
     return render(request,'login.html',{'data':''})
 
@@ -25,9 +28,9 @@ def logdata_fun(request):
         else:
             return render(request, 'login.html', {'data': 'not match'})
     elif Student.objects.filter(Q(s_name=s_name) & Q(s_password=s_password)).exists():
-        student=Student.objects.filter(Q(s_name=s_name) & Q(s_password=s_password))
-        return render(request,'stu_home.html',{'studdata':student})
+        request.session['S_name'] = s_name
 
+        return render(request,'stu_home.html',{'studata': request.session['S_name']})
     else:
         return render(request, 'login.html', {'data': 'check name and password'})
 
@@ -64,10 +67,8 @@ def studentdata_fun(request):
     s1.save()
     return redirect('log')
 
-
 def shome_fun(request):
-    s1 = Student.objects.all()
-    return render(request,'stu_home.html',{'sdata':s1})
+    return render(request,'stu_home.html')
 
 
 def adminhome_fun(request):
@@ -101,7 +102,7 @@ def update_fun(request,id):
         b1.author_name = request.POST['txtauthor']
         b1.course_id = Course.objects.get(course_name=request.POST['ddlcourse'])
         b1.save()
-        return redirect('add')
+        return redirect('disp')
     return render(request, 'update.html', {'bdata': b1,'course_data':course})
 
 
@@ -112,6 +113,7 @@ def del_fun(request,id):
 
 
 def logout_fun(request):
+    logout(request)
     return redirect('log')
 
 
@@ -134,11 +136,12 @@ def issueddisplay_fun(request):
 
 
 def stuissue_fun(request):
-    i1 = Issue_book.objects.all()
-    return render(request, 'studentissuebook.html', {'bdata': i1})
+    a1 = Issue_book.objects.filter(stu_name=Student.objects.get(s_name=request.session['S_name']))
+    return render(request, 'studentissuebook.html', {'ddata': a1})
 
 
 def slogout_fun(request):
+    logout(request)
     return redirect('log')
 
 
@@ -170,3 +173,20 @@ def assingdelet_fun(request,id):
     i1 = Issue_book.objects.get(id=id)
     i1.delete()
     return redirect('iss')
+
+
+def studentprofile_fun(request):
+    s1 = Student.objects.get(s_name=request.session['S_name'])
+    return render(request, 'student_profile.html', {'data': s1})
+
+
+def updateprof_fun(request,id):
+    s1 = Student.objects.get(id=id)
+    if request.method == 'POST':
+        s1.s_name = request.POST['txtname']
+        s1.s_phone = request.POST['txtpho']
+        s1.s_sem = request.POST['txtsam']
+        s1.s_password = request.POST['txtpass']
+        s1.save()
+        return redirect('stpro')
+    return render(request, 'student_update.html', {'data': s1})
